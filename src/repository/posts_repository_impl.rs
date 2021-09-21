@@ -1,9 +1,9 @@
+use crate::schema::posts::dsl::{posts, published, title};
 use diesel::prelude::*;
 use diesel::MysqlConnection;
-use rust_web_app::schema::posts::dsl::{posts, published};
 
 use crate::domain::posts_repository::PostsRepository;
-use crate::models::Post;
+use crate::models::{NewPost, Post};
 use dotenv::dotenv;
 use std::env;
 
@@ -33,5 +33,32 @@ impl PostsRepository for PostsRepositoryImpl {
             .expect("Error loading posts");
 
         results
+    }
+
+    fn write_post<'a>(&self, post_title: &'a str, body: &'a str) {
+        let new_post = NewPost {
+            title: post_title,
+            body: body,
+        };
+
+        diesel::insert_into(posts)
+            .values(&new_post)
+            .execute(&self.connection)
+            .expect("Error saving new post");
+    }
+
+    fn publish_post(&self, update_id: i32) {
+        diesel::update(posts.find(update_id))
+            .set(published.eq(true))
+            .execute(&self.connection)
+            .expect("Error updating specified post");
+    }
+
+    fn delete_post(&self, word: &str) {
+        let pattern = format!("%{}%", word);
+
+        diesel::delete(posts.filter(title.like(pattern)))
+            .execute(&self.connection)
+            .expect("Error deleting posts");
     }
 }
