@@ -2,7 +2,7 @@ use crate::schema::posts::dsl::{posts, published, title};
 use diesel::prelude::*;
 use diesel::MysqlConnection;
 
-use crate::domain::posts_repository::PostsRepository;
+use crate::domain::repository::posts_repository::PostsRepository;
 use crate::models::{NewPost, Post};
 use dotenv::dotenv;
 use std::env;
@@ -38,7 +38,7 @@ impl PostsRepository for PostsRepositoryImpl {
     fn write_post<'a>(&self, post_title: &'a str, body: &'a str) {
         let new_post = NewPost {
             title: post_title,
-            body: body,
+            body,
         };
 
         diesel::insert_into(posts)
