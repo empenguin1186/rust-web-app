@@ -3,13 +3,13 @@ extern crate diesel;
 extern crate dotenv;
 mod domain;
 pub mod models;
-mod repository;
+mod infrastructure;
 pub mod schema;
 use crate::domain::service::posts_service::{PostsService, PostsServiceImpl};
 use crate::models::Post;
 use actix_web::web::Query;
 use actix_web::{delete, get, patch, post, web, App, HttpServer, Responder};
-use repository::posts_repository_impl::PostsRepositoryImpl;
+use infrastructure::repository::posts_repository_impl::PostsRepositoryImpl;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
