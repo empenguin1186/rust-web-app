@@ -2,15 +2,16 @@
 extern crate diesel;
 extern crate dotenv;
 mod domain;
-pub mod models;
 mod infrastructure;
+pub mod models;
 pub mod schema;
 use crate::domain::service::posts_service::{PostsService, PostsServiceImpl};
 use crate::models::Post;
 use actix_web::web::Query;
-use actix_web::{delete, get, patch, post, web, App, HttpServer, Responder};
+use actix_web::{delete, get, patch, post, web, App, HttpResponse, HttpServer, Responder};
 use infrastructure::repository::posts_repository_impl::PostsRepositoryImpl;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
 
 #[derive(Deserialize)]
 struct PostParam {
@@ -33,15 +34,26 @@ struct RequestPost {
     body: String,
 }
 
+#[derive(Serialize, Deserialize)]
+struct GetPostResponse {
+    results: Option<Vec<Post>>,
+    error: Option<String>,
+}
+
 #[get("/post")]
 async fn get_posts(state: web::Data<PostState>, param: Query<PostParam>) -> impl Responder {
     let is_published = param.is_published;
-    let posts = state.get_posts(is_published);
-    let mut result = String::from("");
-    for post in posts {
-        result.push_str(&post.body);
+    let result = state.get_posts(is_published);
+    match result {
+        Ok(n) => HttpResponse::Ok().json(GetPostResponse {
+            results: Some(n),
+            error: None,
+        }),
+        Err(e) => HttpResponse::NotFound().json(GetPostResponse {
+            results: None,
+            error: Some(format!("{:?}", e)),
+        }),
     }
-    result
 }
 
 #[post("/post")]
@@ -88,7 +100,7 @@ impl PostState {
         PostState { posts_service }
     }
 
-    fn get_posts(&self, is_published: bool) -> Vec<Post> {
+    fn get_posts(&self, is_published: bool) -> Result<Vec<Post>, Box<dyn Error>> {
         self.posts_service.read_posts(is_published)
     }
 

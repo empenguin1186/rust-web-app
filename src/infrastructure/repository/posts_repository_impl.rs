@@ -6,6 +6,7 @@ use crate::domain::repository::posts_repository::PostsRepository;
 use crate::models::{NewPost, Post};
 use dotenv::dotenv;
 use std::env;
+use std::error::Error;
 
 pub struct PostsRepositoryImpl {
     pub connection: MysqlConnection,
@@ -18,21 +19,23 @@ impl PostsRepositoryImpl {
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
         let connection = MysqlConnection::establish(&database_url)
-            .expect(&format!("Error connectiong to {}", database_url));
+            .expect(&format!("Error connecting to {}", database_url));
 
         PostsRepositoryImpl { connection }
     }
 }
 
 impl PostsRepository for PostsRepositoryImpl {
-    fn show_posts(&self, is_published: bool) -> Vec<Post> {
-        let results = posts
+    fn show_posts(&self, is_published: bool) -> Result<Vec<Post>, Box<dyn Error>> {
+        let result = posts
             .filter(published.eq(is_published))
             .limit(5)
-            .load::<Post>(&self.connection)
-            .expect("Error loading posts");
+            .load::<Post>(&self.connection);
 
-        results
+        match result {
+            Ok(n) => return Ok(n),
+            Err(e) => return Err(Box::new(e)),
+        }
     }
 
     fn write_post<'a>(&self, post_title: &'a str, body: &'a str) {
