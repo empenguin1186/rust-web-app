@@ -2,15 +2,16 @@
 extern crate diesel;
 extern crate dotenv;
 mod domain;
+mod infrastructure;
 pub mod models;
-mod repository;
 pub mod schema;
 use crate::domain::service::posts_service::{PostsService, PostsServiceImpl};
 use crate::models::Post;
 use actix_web::web::Query;
-use actix_web::{delete, get, patch, post, web, App, HttpServer, Responder};
-use repository::posts_repository_impl::PostsRepositoryImpl;
-use serde::Deserialize;
+use actix_web::{delete, get, patch, post, web, App, HttpResponse, HttpServer, Responder};
+use infrastructure::repository::posts_repository_impl::PostsRepositoryImpl;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
 
 #[derive(Deserialize)]
 struct PostParam {
@@ -33,33 +34,77 @@ struct RequestPost {
     body: String,
 }
 
+#[derive(Serialize, Deserialize)]
+struct GetPostResponse {
+    results: Option<Vec<Post>>,
+    error: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct CUDResponse {
+    result: Option<String>,
+    error: Option<String>,
+}
+
 #[get("/post")]
 async fn get_posts(state: web::Data<PostState>, param: Query<PostParam>) -> impl Responder {
     let is_published = param.is_published;
-    let posts = state.get_posts(is_published);
-    let mut result = String::from("");
-    for post in posts {
-        result.push_str(&post.body);
+    let result = state.get_posts(is_published);
+    match result {
+        Ok(n) => HttpResponse::Ok().json(GetPostResponse {
+            results: Some(n),
+            error: None,
+        }),
+        Err(e) => HttpResponse::NotFound().json(GetPostResponse {
+            results: None,
+            error: Some(format!("{:?}", e)),
+        }),
     }
-    result
 }
 
 #[post("/post")]
 async fn post_post(state: web::Data<PostState>, request: web::Json<RequestPost>) -> impl Responder {
-    state.post_post(&request.title, &request.body);
-    format!("Registered {}!", request.title)
+    let result = state.post_post(&request.title, &request.body);
+    match result {
+        Ok(()) => HttpResponse::Ok().json(CUDResponse {
+            result: Some(String::from("Ok")),
+            error: None,
+        }),
+        Err(e) => HttpResponse::NotFound().json(CUDResponse {
+            result: None,
+            error: Some(format!("{:?}", e)),
+        }),
+    }
 }
 
 #[patch("/post")]
 async fn patch_post(state: web::Data<PostState>, param: Query<PatchParam>) -> impl Responder {
-    state.patch_post(param.id);
-    format!("Update Succeeded! id: {}!", param.id)
+    let result = state.patch_post(param.id);
+    match result {
+        Ok(()) => HttpResponse::Ok().json(CUDResponse {
+            result: Some(String::from("Ok")),
+            error: None,
+        }),
+        Err(e) => HttpResponse::NotFound().json(CUDResponse {
+            result: None,
+            error: Some(format!("{:?}", e)),
+        }),
+    }
 }
 
 #[delete("/post")]
 async fn delete_post(state: web::Data<PostState>, param: Query<DeleteParam>) -> impl Responder {
-    state.delete_post(&param.keyword);
-    format!("Delete Succeeded! keyword: {}!", param.keyword)
+    let result = state.delete_post(&param.keyword);
+    match result {
+        Ok(()) => HttpResponse::Ok().json(CUDResponse {
+            result: Some(String::from("Ok")),
+            error: None,
+        }),
+        Err(e) => HttpResponse::NotFound().json(CUDResponse {
+            result: None,
+            error: Some(format!("{:?}", e)),
+        }),
+    }
 }
 
 #[actix_web::main]
@@ -88,19 +133,19 @@ impl PostState {
         PostState { posts_service }
     }
 
-    fn get_posts(&self, is_published: bool) -> Vec<Post> {
+    fn get_posts(&self, is_published: bool) -> Result<Vec<Post>, Box<dyn Error>> {
         self.posts_service.read_posts(is_published)
     }
 
-    fn post_post<'a>(&self, post_title: &'a str, body: &'a str) {
+    fn post_post<'a>(&self, post_title: &'a str, body: &'a str) -> Result<(), Box<dyn Error>> {
         self.posts_service.create_post(post_title, body)
     }
 
-    fn patch_post(&self, update_id: i32) {
+    fn patch_post(&self, update_id: i32) -> Result<(), Box<dyn Error>> {
         self.posts_service.update_post(update_id)
     }
 
-    fn delete_post(&self, word: &str) {
+    fn delete_post(&self, word: &str) -> Result<(), Box<dyn Error>> {
         self.posts_service.delete_post(word)
     }
 }
