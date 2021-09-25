@@ -38,30 +38,41 @@ impl PostsRepository for PostsRepositoryImpl {
         }
     }
 
-    fn write_post<'a>(&self, post_title: &'a str, body: &'a str) {
+    fn write_post<'a>(&self, post_title: &'a str, body: &'a str) -> Result<(), Box<dyn Error>> {
         let new_post = NewPost {
             title: post_title,
             body,
         };
 
-        diesel::insert_into(posts)
+        let result = diesel::insert_into(posts)
             .values(&new_post)
-            .execute(&self.connection)
-            .expect("Error saving new post");
+            .execute(&self.connection);
+
+        match result {
+            Ok(_n) => return Ok(()),
+            Err(e) => return Err(Box::new(e)),
+        }
     }
 
-    fn publish_post(&self, update_id: i32) {
-        diesel::update(posts.find(update_id))
+    fn publish_post(&self, update_id: i32) -> Result<(), Box<dyn Error>> {
+        let result = diesel::update(posts.find(update_id))
             .set(published.eq(true))
-            .execute(&self.connection)
-            .expect("Error updating specified post");
+            .execute(&self.connection);
+
+        match result {
+            Ok(_n) => return Ok(()),
+            Err(e) => return Err(Box::new(e)),
+        }
     }
 
-    fn delete_post(&self, word: &str) {
+    fn delete_post(&self, word: &str) -> Result<(), Box<dyn Error>> {
         let pattern = format!("%{}%", word);
 
-        diesel::delete(posts.filter(title.like(pattern)))
-            .execute(&self.connection)
-            .expect("Error deleting posts");
+        let result = diesel::delete(posts.filter(title.like(pattern))).execute(&self.connection);
+
+        match result {
+            Ok(_n) => return Ok(()),
+            Err(e) => return Err(Box::new(e)),
+        }
     }
 }
