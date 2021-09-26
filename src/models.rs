@@ -1,7 +1,7 @@
 use super::schema::posts;
 use serde::{Deserialize, Serialize};
 
-#[derive(Queryable, Deserialize, Serialize)]
+#[derive(Queryable, Deserialize, Serialize, Debug, PartialEq)]
 pub struct Post {
     pub id: i32,
     pub title: String,

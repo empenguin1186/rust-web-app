@@ -36,3 +36,33 @@ impl PostsService for PostsServiceImpl {
         self.repository.delete_post(word)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::domain::repository::posts_repository::MockPostsRepository;
+    use mockall::*;
+
+    #[test]
+    fn posts_service_test() {
+        let mut mock = MockPostsRepository::new();
+        let posts_service = PostsServiceImpl::new(Box::new(&mock));
+        let is_published = true;
+        let post = vec![Post {
+            id: 1,
+            title: String::from("title"),
+            body: String::from("body"),
+            published: true,
+        }];
+        mock.expect_show_posts()
+            .with(predicate::eq(is_published))
+            .times(1)
+            .returning(|_| Ok(post));
+        let result = posts_service.read_posts(is_published);
+
+        match result {
+            Ok(n) => assert_eq!(post, n),
+            Err(e) => panic!("Unexpected Error Occurred."),
+        }
+    }
+}
