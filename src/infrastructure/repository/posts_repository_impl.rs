@@ -38,7 +38,7 @@ impl PostsRepository for PostsRepositoryImpl {
         }
     }
 
-    fn write_post<'a>(&self, post_title: &'a str, body: &'a str) -> Result<(), Box<dyn Error>> {
+    fn write_post(&self, post_title: &str, body: &str) -> Result<(), Box<dyn Error>> {
         let new_post = NewPost {
             title: post_title,
             body,

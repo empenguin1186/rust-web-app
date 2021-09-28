@@ -4,27 +4,27 @@ use std::error::Error;
 
 pub trait PostsService {
     fn read_posts(&self, is_published: bool) -> Result<Vec<Post>, Box<dyn Error>>;
-    fn create_post<'a>(&self, post_title: &'a str, body: &'a str) -> Result<(), Box<dyn Error>>;
+    fn create_post(&self, post_title: &str, body: &str) -> Result<(), Box<dyn Error>>;
     fn update_post(&self, update_id: i32) -> Result<(), Box<dyn Error>>;
     fn delete_post(&self, word: &str) -> Result<(), Box<dyn Error>>;
 }
 
-pub struct PostsServiceImpl {
-    repository: Box<dyn PostsRepository>,
+pub struct PostsServiceImpl<'a, T> {
+    repository: &'a mut T,
 }
 
-impl PostsServiceImpl {
-    pub fn new(repository: Box<dyn PostsRepository>) -> PostsServiceImpl {
+impl<'a, T: PostsRepository> PostsServiceImpl<'a, T> {
+    pub fn new(repository: &'a mut T) -> PostsServiceImpl<T> {
         PostsServiceImpl { repository }
     }
 }
 
-impl PostsService for PostsServiceImpl {
+impl<'a, T: PostsRepository> PostsService for PostsServiceImpl<'a, T> {
     fn read_posts(&self, is_published: bool) -> Result<Vec<Post>, Box<dyn Error>> {
         self.repository.show_posts(is_published)
     }
 
-    fn create_post<'a>(&self, post_title: &'a str, body: &'a str) -> Result<(), Box<dyn Error>> {
+    fn create_post(&self, post_title: &str, body: &str) -> Result<(), Box<dyn Error>> {
         self.repository.write_post(post_title, body)
     }
 
@@ -46,7 +46,6 @@ mod test {
     #[test]
     fn posts_service_test() {
         let mut mock = MockPostsRepository::new();
-        let posts_service = PostsServiceImpl::new(Box::new(&mock));
         let is_published = true;
         let post = vec![Post {
             id: 1,
@@ -57,7 +56,16 @@ mod test {
         mock.expect_show_posts()
             .with(predicate::eq(is_published))
             .times(1)
-            .returning(|_| Ok(post));
+            .returning(|_| {
+                Ok(vec![Post {
+                    id: 1,
+                    title: String::from("title"),
+                    body: String::from("body"),
+                    published: true,
+                }])
+            });
+
+        let posts_service = PostsServiceImpl::new(&mut mock);
         let result = posts_service.read_posts(is_published);
 
         match result {
