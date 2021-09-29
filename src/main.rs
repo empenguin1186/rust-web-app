@@ -107,22 +107,23 @@ async fn delete_post(state: web::Data<PostState>, param: Query<DeleteParam>) -> 
     }
 }
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    let mut repository = PostsRepositoryImpl::new();
-    HttpServer::new(|| {
-        let state = PostState::new(Box::new(PostsServiceImpl::new(&mut repository)));
-        App::new()
-            .service(get_posts)
-            .service(post_post)
-            .service(patch_post)
-            .service(delete_post)
-            .data(state)
-    })
-    .bind("127.0.0.1:8080")?
-    .run()
-    .await
-}
+fn main() {}
+// #[actix_web::main]
+// async fn main() -> std::io::Result<()> {
+//     let mut repository = PostsRepositoryImpl::new();
+//     HttpServer::new(|| {
+//         let state = PostState::new(Box::new(PostsServiceImpl::new(&mut repository)));
+//         App::new()
+//             .service(get_posts)
+//             .service(post_post)
+//             .service(patch_post)
+//             .service(delete_post)
+//             .data(state)
+//     })
+//     .bind("127.0.0.1:8080")?
+//     .run()
+//     .await
+// }
 
 pub struct PostState {
     posts_service: Box<dyn PostsService>,

@@ -8,6 +8,7 @@ use dotenv::dotenv;
 use std::env;
 use std::error::Error;
 
+//#[derive(Debug, Copy, Clone)]
 pub struct PostsRepositoryImpl {
     pub connection: MysqlConnection,
 }

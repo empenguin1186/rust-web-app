@@ -10,11 +10,11 @@ pub trait PostsService {
 }
 
 pub struct PostsServiceImpl<'a, T> {
-    repository: &'a mut T,
+    repository: &'a T,
 }
 
 impl<'a, T: PostsRepository> PostsServiceImpl<'a, T> {
-    pub fn new(repository: &'a mut T) -> PostsServiceImpl<T> {
+    pub fn new(repository: &'a T) -> PostsServiceImpl<T> {
         PostsServiceImpl { repository }
     }
 }
@@ -53,19 +53,14 @@ mod test {
             body: String::from("body"),
             published: true,
         }];
+        let mut arg = post.clone();
+        let mut clojure = |_| Ok(&mut arg);
         mock.expect_show_posts()
             .with(predicate::eq(is_published))
             .times(1)
-            .returning(|_| {
-                Ok(vec![Post {
-                    id: 1,
-                    title: String::from("title"),
-                    body: String::from("body"),
-                    published: true,
-                }])
-            });
+            .returning(clojure);
 
-        let posts_service = PostsServiceImpl::new(&mut mock);
+        let posts_service = PostsServiceImpl::new(&mock);
         let result = posts_service.read_posts(is_published);
 
         match result {
