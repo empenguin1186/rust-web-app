@@ -53,24 +53,17 @@ mod test {
             body: String::from("body"),
             published: true,
         }];
-        let post2 = vec![Post {
-            id: 1,
-            title: String::from("title"),
-            body: String::from("body"),
-            published: true,
-        }];
-        // let expected = post.clone();
-        let clojure = move |_| -> Result<Vec<Post>, Box<(dyn Error + 'static)>> { Ok(post) };
+        let returned = post.clone();
         mock.expect_show_posts()
             .with(predicate::eq(is_published))
             .times(1)
-            .returning(clojure);
+            .returning(move |_| Ok(returned.clone()));
 
         let posts_service = PostsServiceImpl::new(&mock);
         let result = posts_service.read_posts(is_published);
 
         match result {
-            Ok(n) => assert_eq!(&post2, &n),
+            Ok(n) => assert_eq!(post, n),
             Err(e) => panic!("Unexpected Error Occurred."),
         }
     }
