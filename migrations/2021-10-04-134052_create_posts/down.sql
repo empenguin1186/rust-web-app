@@ -1,0 +1,2 @@
+DROP TABLE TreePaths
+DROP TABLE Comments
