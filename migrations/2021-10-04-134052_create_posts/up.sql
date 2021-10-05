@@ -37,3 +37,27 @@ INSERT INTO TreePaths (ancestor, descendant) VALUES (5, 5);
 INSERT INTO TreePaths (ancestor, descendant) VALUES (6, 6);
 INSERT INTO TreePaths (ancestor, descendant) VALUES (6, 7);
 INSERT INTO TreePaths (ancestor, descendant) VALUES (7, 7);
+
+CREATE TABLE CommentsPE (
+ comment_id SERIAL PRIMARY KEY,
+ path VARCHAR(1000),
+ author BIGINT UNSIGNED NOT NULL,
+ comment TEXT NOT NULL
+);
+
+INSERT INTO CommentsPE (path, author, comment) VALUES ('1/', 1, "hoge");
+INSERT INTO CommentsPE (author, comment) VALUES (2, 'fuga');
+UPDATE CommentsPE
+ SET path =
+ (SELECT x.path FROM (
+   SELECT path FROM CommentsPE WHERE comment_id = 1
+ ) AS x) || LAST_INSERT_ID() || '/'
+WHERE comment_id = LAST_INSERT_ID();
+
+INSERT INTO CommentsPE (author, comment) VALUES (3, 'piyo');
+UPDATE CommentsPE
+ SET path =
+ (SELECT x.path FROM (
+   SELECT path FROM CommentsPE WHERE comment_id = 2
+ ) AS x) || LAST_INSERT_ID() || '/'
+WHERE comment_id = LAST_INSERT_ID();
