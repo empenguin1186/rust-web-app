@@ -18,8 +18,8 @@ pub struct NewPost<'a> {
 
 #[derive(Queryable, Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct CommentPE {
-    pub id: i32,
-    pub path: String,
-    pub author: i32,
+    pub id: u64,
+    pub path: Option<String>,
+    pub author: u64,
     pub comment: String,
 }

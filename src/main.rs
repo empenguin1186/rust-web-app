@@ -107,7 +107,24 @@ async fn delete_post(state: web::Data<PostState>, param: Query<DeleteParam>) -> 
     }
 }
 
-fn main() {}
+use crate::domain::model::tree::Tree;
+use crate::domain::repository::comments_repository::CommentsRepository;
+use crate::infrastructure::repository::comments_repository_impl::CommentsRepositoryImpl;
+
+fn main() {
+    let comments_repository = CommentsRepositoryImpl::new();
+    let path = String::from("1/");
+    let result = comments_repository.select_comments(&path);
+    match result {
+        Ok(n) => {
+            let tree = Tree::new(&n);
+            println!("tree: {:?}", tree);
+        }
+        Err(e) => {
+            println!("error: {}", e);
+        }
+    }
+}
 
 // #[actix_web::main]
 // async fn main() -> std::io::Result<()> {
