@@ -114,16 +114,21 @@ use crate::infrastructure::repository::comments_repository_impl::CommentsReposit
 fn main() {
     let comments_repository = CommentsRepositoryImpl::new();
     let path = String::from("1/");
-    let result = comments_repository.select_comments(&path);
+    let author = 4;
+    let result = comments_repository.add_comments(3, &author, "hogehogehoge");
     match result {
-        Ok(n) => {
-            let tree = Tree::new(&n);
-            println!("tree: {:?}", tree);
-        }
-        Err(e) => {
-            println!("error: {}", e);
-        }
+        _ => {}
+        Err(e) => println!("error: {}", e),
     }
+    // match result {
+    //     Ok(n) => {
+    //         let tree = Tree::new(&n);
+    //         println!("tree: {:?}", tree);
+    //     }
+    //     Err(e) => {
+    //         println!("error: {}", e);
+    //     }
+    // }
 }
 
 // #[actix_web::main]

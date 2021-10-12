@@ -1,4 +1,4 @@
-use super::schema::posts;
+use super::schema::{posts, CommentsPE};
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Deserialize, Serialize, Clone, Debug, PartialEq)]
@@ -22,4 +22,11 @@ pub struct CommentPE {
     pub path: Option<String>,
     pub author: u64,
     pub comment: String,
+}
+
+#[derive(Insertable)]
+#[table_name = "CommentsPE"]
+pub struct NewCommentsPE<'a> {
+    pub author: &'a u64,
+    pub comment: &'a str,
 }
