@@ -110,25 +110,29 @@ async fn delete_post(state: web::Data<PostState>, param: Query<DeleteParam>) -> 
 use crate::domain::model::tree::Tree;
 use crate::domain::repository::comments_repository::CommentsRepository;
 use crate::infrastructure::repository::comments_repository_impl::CommentsRepositoryImpl;
+extern crate serde_json;
 
 fn main() {
     let comments_repository = CommentsRepositoryImpl::new();
     let path = String::from("1/");
-    let author = 4;
-    let result = comments_repository.add_comments(3, &author, "hogehogehoge");
-    match result {
-        _ => {}
-        Err(e) => println!("error: {}", e),
-    }
+    let author = 5;
+    // let result = comments_repository.add_comments(1, &author, "hogehogehoge");
     // match result {
-    //     Ok(n) => {
-    //         let tree = Tree::new(&n);
-    //         println!("tree: {:?}", tree);
-    //     }
-    //     Err(e) => {
-    //         println!("error: {}", e);
-    //     }
+    //     _ => {}
+    //     Err(e) => println!("error: {}", e),
     // }
+
+    let result = comments_repository.select_comments(&path);
+    match result {
+        Ok(n) => {
+            let tree = Tree::new(&n);
+            let json = serde_json::to_string(&tree).unwrap();
+            println!("result: {}", json);
+        }
+        Err(e) => {
+            println!("error: {}", e);
+        }
+    }
 }
 
 // #[actix_web::main]

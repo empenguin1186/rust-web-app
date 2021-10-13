@@ -33,6 +33,7 @@ impl CommentsRepository for CommentsRepositoryImpl {
 
         let result = CommentsPE
             .filter(path.like(pattern))
+            .order(path.asc())
             .load::<CommentPE>(&self.connection);
 
         match result {

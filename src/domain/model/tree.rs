@@ -1,27 +1,28 @@
 use crate::models::CommentPE;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Item {
     comment: String,
     author: u64,
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[serde(untagged)]
 pub enum Tree {
-    Leaf(Item),
-    Branch(Item, Vec<Tree>),
+    Leaf { item: Item },
+    Branch { item: Item, children: Vec<Tree> },
 }
 
 impl Tree {
     pub fn new(comments: &Vec<CommentPE>) -> Tree {
-        let mut depth = 2 as usize;
         let mut index = 0 as usize;
+        let mut depth = comments.get(index).unwrap().path.as_ref().unwrap().len();
         Tree::create_tree(&mut depth, &mut index, comments)
     }
 
     fn add_child(&mut self, tree: Tree) {
-        if let Tree::Branch(_, children) = self {
+        if let Tree::Branch { item: _, children } = self {
             children.push(tree);
         }
     }
@@ -32,10 +33,12 @@ impl Tree {
             let author = comments.get(*index).unwrap().author;
             let comment = &comments.get(*index).unwrap().comment;
             *depth = 2 as usize;
-            return Tree::Leaf(Item {
-                comment: comment.to_string(),
-                author: author,
-            });
+            return Tree::Leaf {
+                item: Item {
+                    comment: comment.to_string(),
+                    author: author,
+                },
+            };
         }
 
         let author = comments.get(*index).unwrap().author;
@@ -53,25 +56,27 @@ impl Tree {
             *index = *index + 1;
             *depth = comments.get(*index).unwrap().path.as_ref().unwrap().len();
 
-            let mut branch = Tree::Branch(
-                Item {
+            let mut branch = Tree::Branch {
+                item: Item {
                     comment: comment.to_string(),
                     author: author,
                 },
-                vec![],
-            );
+                children: vec![],
+            };
 
-            if let Tree::Branch(_, _) = branch {
+            if let Tree::Branch { .. } = branch {
                 while *depth > cur_depth {
                     branch.add_child(Tree::create_tree(depth, index, comments));
                 }
             }
             return branch;
         } else {
-            let leaf = Tree::Leaf(Item {
-                comment: comment.to_string(),
-                author: author,
-            });
+            let leaf = Tree::Leaf {
+                item: Item {
+                    comment: comment.to_string(),
+                    author: author,
+                },
+            };
             *index = *index + 1;
             *depth = comments.get(*index).unwrap().path.as_ref().unwrap().len();
             return leaf;
@@ -153,53 +158,54 @@ mod test {
             ]
         },
         expected = {
-            Tree::Branch(
-                Item {
+            Tree::Branch {
+                item: Item {
                     comment: String::from("hoge"),
                     author: 1,
                 },
-                vec![
-                    Tree::Leaf(
-                        Item{comment: String::from("fuga"), author: 2}
-                    ),
-                    Tree::Leaf(
-                        Item{comment: String::from("piyo"), author: 3},
-                    )
-                ]),
-            Tree::Branch(
-                Item {
+                children: vec![
+                    Tree::Leaf {
+                        item: Item{comment: String::from("fuga"), author: 2}
+                    },
+                    Tree::Leaf {
+                        item: Item{comment: String::from("piyo"), author: 3},
+                    }
+                ]
+            },
+            Tree::Branch {
+                item: Item {
                     comment: String::from("hoge"),
                     author: 1,
                 },
-                vec![
-                    Tree::Branch(
-                        Item {
+                children: vec![
+                    Tree::Branch {
+                        item: Item {
                             comment: String::from("fuga"),
                             author: 2,
                         },
-                        vec![
-                            Tree::Leaf(Item{comment: String::from("piyo"), author: 3})
+                        children: vec![
+                            Tree::Leaf{item: Item{comment: String::from("piyo"), author: 3}}
                         ]
-                    ),
-                    Tree::Branch(
-                        Item {
+                    },
+                    Tree::Branch {
+                        item: Item {
                             comment: String::from("hogehoge"),
                             author: 4,
                         },
-                        vec![
-                            Tree::Branch(
-                                Item{comment: String::from("fugafuga"), author: 5},
-                                vec![
-                                    Tree::Leaf(Item{comment: String::from("piyopiyo"), author: 6})
+                        children: vec![
+                            Tree::Branch {
+                                item: Item{comment: String::from("fugafuga"), author: 5},
+                                children: vec![
+                                    Tree::Leaf{item: Item{comment: String::from("piyopiyo"), author: 6}}
                                 ]
-                            ),
-                            Tree::Leaf(
-                                Item{comment: String::from("hogehogehoge"), author: 7}
-                            ),
+                            },
+                            Tree::Leaf {
+                                item: Item{comment: String::from("hogehogehoge"), author: 7}
+                            },
                         ]
-                    ),
+                    },
                 ]
-            )
+            }
         })]
     pub fn test(input: Vec<CommentPE>, expected: Tree) {
         let mut depth = 2 as usize;
