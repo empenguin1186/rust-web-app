@@ -34,9 +34,9 @@ impl PostsRepository for PostsRepositoryImpl {
             .limit(5)
             .load::<Post>(&self.connection);
 
-        match result {
-            Ok(n) => return Ok(n),
-            Err(e) => return Err(Box::new(e)),
+        return match result {
+            Ok(n) => Ok(n),
+            Err(e) => Err(Box::new(e)),
         }
     }
 
@@ -50,9 +50,9 @@ impl PostsRepository for PostsRepositoryImpl {
             .values(&new_post)
             .execute(&self.connection);
 
-        match result {
-            Ok(_n) => return Ok(()),
-            Err(e) => return Err(Box::new(e)),
+        return match result {
+            Ok(_n) => Ok(()),
+            Err(e) => Err(Box::new(e)),
         }
     }
 
@@ -61,9 +61,9 @@ impl PostsRepository for PostsRepositoryImpl {
             .set(published.eq(true))
             .execute(&self.connection);
 
-        match result {
-            Ok(_n) => return Ok(()),
-            Err(e) => return Err(Box::new(e)),
+        return match result {
+            Ok(_n) => Ok(()),
+            Err(e) => Err(Box::new(e)),
         }
     }
 
@@ -72,9 +72,9 @@ impl PostsRepository for PostsRepositoryImpl {
 
         let result = diesel::delete(posts.filter(title.like(pattern))).execute(&self.connection);
 
-        match result {
-            Ok(_n) => return Ok(()),
-            Err(e) => return Err(Box::new(e)),
+        return match result {
+            Ok(_n) => Ok(()),
+            Err(e) => Err(Box::new(e)),
         }
     }
 }

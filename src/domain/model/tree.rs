@@ -37,7 +37,7 @@ impl Tree {
             return Tree::Leaf {
                 item: Item {
                     comment: comment.to_string(),
-                    author: author,
+                    author,
                 },
             };
         }
@@ -60,7 +60,7 @@ impl Tree {
             let mut branch = Tree::Branch {
                 item: Item {
                     comment: comment.to_string(),
-                    author: author,
+                    author,
                 },
                 children: vec![],
             };
@@ -75,7 +75,7 @@ impl Tree {
             let leaf = Tree::Leaf {
                 item: Item {
                     comment: comment.to_string(),
-                    author: author,
+                    author,
                 },
             };
             *index = *index + 1;
@@ -209,7 +209,7 @@ mod test {
             }
         })]
     pub fn test(input: Vec<CommentPE>, expected: Tree) {
-        let mut depth = 2 as usize;
+        let mut depth = input.len();
         let mut index = 0 as usize;
         assert_eq!(Tree::create_tree(&mut depth, &mut index, &input), expected);
     }

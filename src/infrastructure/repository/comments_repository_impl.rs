@@ -38,9 +38,9 @@ impl CommentsRepository for CommentsRepositoryImpl {
             .order(path.asc())
             .load::<CommentPE>(&self.connection);
 
-        match result {
-            Ok(n) => return Ok(n),
-            Err(e) => return Err(Box::new(e)),
+        return match result {
+            Ok(n) => Ok(n),
+            Err(e) => Err(Box::new(e)),
         }
     }
 
@@ -68,15 +68,15 @@ impl CommentsRepository for CommentsRepositoryImpl {
             .bind::<Unsigned<BigInt>, _>(id)
             .execute(&self.connection);
 
-            match update_result {
-                Ok(_) => return Ok(()),
-                Err(_) => return Err(DieselError::RollbackTransaction),
+            return match update_result {
+                Ok(_) => Ok(()),
+                Err(_) => Err(DieselError::RollbackTransaction),
             }
         });
 
-        match transaction_result {
-            Ok(_) => return Ok(()),
-            Err(e) => return Err(Box::new(e)),
+        return match transaction_result {
+            Ok(_) => Ok(()),
+            Err(e) => Err(Box::new(e)),
         }
     }
 }
