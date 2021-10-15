@@ -1,5 +1,6 @@
-use crate::models::CommentPE;
 use serde::{Deserialize, Serialize};
+
+use crate::models::CommentPE;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Item {
@@ -86,9 +87,9 @@ impl Tree {
 
 #[cfg(test)]
 mod test {
+    use parameterized::parameterized;
 
     use super::*;
-    use parameterized::parameterized;
 
     #[parameterized(
         input = {

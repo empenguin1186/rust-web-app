@@ -1,6 +1,7 @@
+use std::error::Error;
+
 use crate::domain::repository::posts_repository::PostsRepository;
 use crate::models::Post;
-use std::error::Error;
 
 pub trait PostsService {
     fn read_posts(&self, is_published: bool) -> Result<Vec<Post>, Box<dyn Error>>;
@@ -39,9 +40,11 @@ impl<'a, T: PostsRepository> PostsService for PostsServiceImpl<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::domain::repository::posts_repository::MockPostsRepository;
     use mockall::*;
+
+    use crate::domain::repository::posts_repository::MockPostsRepository;
+
+    use super::*;
 
     #[test]
     fn posts_service_test() {

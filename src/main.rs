@@ -1,17 +1,26 @@
 #[macro_use]
 extern crate diesel;
 extern crate dotenv;
+extern crate serde_json;
+
+use std::error::Error;
+
+use actix_web::{App, delete, get, HttpResponse, HttpServer, patch, post, Responder, web};
+use actix_web::web::Query;
+use serde::{Deserialize, Serialize};
+
+use infrastructure::repository::posts_repository_impl::PostsRepositoryImpl;
+
+use crate::domain::model::tree::Tree;
+use crate::domain::repository::comments_repository::CommentsRepository;
+use crate::domain::service::posts_service::{PostsService, PostsServiceImpl};
+use crate::infrastructure::repository::comments_repository_impl::CommentsRepositoryImpl;
+use crate::models::Post;
+
 mod domain;
 mod infrastructure;
 pub mod models;
 pub mod schema;
-use crate::domain::service::posts_service::{PostsService, PostsServiceImpl};
-use crate::models::Post;
-use actix_web::web::Query;
-use actix_web::{delete, get, patch, post, web, App, HttpResponse, HttpServer, Responder};
-use infrastructure::repository::posts_repository_impl::PostsRepositoryImpl;
-use serde::{Deserialize, Serialize};
-use std::error::Error;
 
 #[derive(Deserialize)]
 struct PostParam {
@@ -107,20 +116,16 @@ async fn delete_post(state: web::Data<PostState>, param: Query<DeleteParam>) -> 
     }
 }
 
-use crate::domain::model::tree::Tree;
-use crate::domain::repository::comments_repository::CommentsRepository;
-use crate::infrastructure::repository::comments_repository_impl::CommentsRepositoryImpl;
-extern crate serde_json;
-
 fn main() {
     let comments_repository = CommentsRepositoryImpl::new();
     let path = String::from("1/");
     let author = 5;
-    // let result = comments_repository.add_comments(1, &author, "hogehogehoge");
-    // match result {
-    //     _ => {}
-    //     Err(e) => println!("error: {}", e),
-    // }
+
+    let result = comments_repository.add_comments(1, &author, "hogehogehoge");
+    match result {
+        _ => {}
+        Err(e) => println!("error: {}", e),
+    }
 
     let result = comments_repository.select_comments(&path);
     match result {

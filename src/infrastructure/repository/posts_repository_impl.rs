@@ -1,12 +1,13 @@
-use crate::schema::posts::dsl::{posts, published, title};
-use diesel::prelude::*;
+use std::env;
+use std::error::Error;
+
 use diesel::MysqlConnection;
+use diesel::prelude::*;
+use dotenv::dotenv;
 
 use crate::domain::repository::posts_repository::PostsRepository;
 use crate::models::{NewPost, Post};
-use dotenv::dotenv;
-use std::env;
-use std::error::Error;
+use crate::schema::posts::dsl::{posts, published, title};
 
 //#[derive(Debug, Copy, Clone)]
 pub struct PostsRepositoryImpl {

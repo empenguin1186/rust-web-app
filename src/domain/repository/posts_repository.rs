@@ -1,7 +1,9 @@
-use crate::models::Post;
-use mockall::predicate::*;
-use mockall::*;
 use std::error::Error;
+
+use mockall::*;
+use mockall::predicate::*;
+
+use crate::models::Post;
 
 #[automock]
 pub trait PostsRepository {

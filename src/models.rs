@@ -1,5 +1,6 @@
-use super::schema::{posts, CommentsPE};
 use serde::{Deserialize, Serialize};
+
+use super::schema::{CommentsPE, posts};
 
 #[derive(Queryable, Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct Post {

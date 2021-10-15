@@ -1,15 +1,16 @@
-use crate::schema::CommentsPE::dsl::{comment_id, path, CommentsPE};
+use std::env;
+use std::error::Error;
+
+use diesel::MysqlConnection;
 use diesel::prelude::*;
 use diesel::result::Error as DieselError;
 use diesel::sql_query;
 use diesel::sql_types::{BigInt, Unsigned};
-use diesel::MysqlConnection;
+use dotenv::dotenv;
 
 use crate::domain::repository::comments_repository::CommentsRepository;
 use crate::models::{CommentPE, NewCommentsPE};
-use dotenv::dotenv;
-use std::env;
-use std::error::Error;
+use crate::schema::CommentsPE::dsl::{comment_id, CommentsPE, path};
 
 pub struct CommentsRepositoryImpl {
     pub connection: MysqlConnection,

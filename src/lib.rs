@@ -2,14 +2,16 @@
 extern crate diesel;
 extern crate dotenv;
 
-pub mod models;
-pub mod schema;
+use std::env;
 
-use self::models::{NewPost, Post};
 use diesel::mysql::MysqlConnection;
 use diesel::prelude::*;
 use dotenv::dotenv;
-use std::env;
+
+use self::models::{NewPost, Post};
+
+pub mod models;
+pub mod schema;
 
 pub fn establish_connection() -> MysqlConnection {
     dotenv().ok();

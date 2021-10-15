@@ -1,7 +1,9 @@
-use crate::models::CommentPE;
-use mockall::predicate::*;
-use mockall::*;
 use std::error::Error;
+
+use mockall::*;
+use mockall::predicate::*;
+
+use crate::models::CommentPE;
 
 #[automock]
 pub trait CommentsRepository {
