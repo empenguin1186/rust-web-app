@@ -45,14 +45,14 @@ impl Tree {
         let author = comments.get(*index).unwrap().author;
         let comment = &comments.get(*index).unwrap().comment;
         let cur_depth = comments.get(*index).unwrap().path.as_ref().unwrap().len();
-        if cur_depth
+        return if cur_depth
             < comments
-                .get(*index + 1)
-                .unwrap()
-                .path
-                .as_ref()
-                .unwrap()
-                .len()
+            .get(*index + 1)
+            .unwrap()
+            .path
+            .as_ref()
+            .unwrap()
+            .len()
         {
             *index = *index + 1;
             *depth = comments.get(*index).unwrap().path.as_ref().unwrap().len();
@@ -70,7 +70,7 @@ impl Tree {
                     branch.add_child(Tree::create_tree(depth, index, comments));
                 }
             }
-            return branch;
+            branch
         } else {
             let leaf = Tree::Leaf {
                 item: Item {
@@ -80,7 +80,7 @@ impl Tree {
             };
             *index = *index + 1;
             *depth = comments.get(*index).unwrap().path.as_ref().unwrap().len();
-            return leaf;
+            leaf
         }
     }
 }
