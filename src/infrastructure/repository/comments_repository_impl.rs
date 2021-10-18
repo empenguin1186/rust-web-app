@@ -30,6 +30,19 @@ impl CommentsRepositoryImpl {
 }
 
 impl CommentsRepository for CommentsRepositoryImpl {
+    fn get_path(&self, id: u64) -> Result<Option<String>, Box<dyn Error>> {
+        let result = CommentsPE
+            .filter(comment_id.eq(id))
+            .limit(1)
+            .select(path)
+            .load::<Option<String>>(&self.connection);
+
+        return match result {
+            Ok(n) => Ok(n.get(0).unwrap().as_deref().to_string()),
+            Err(e) => Err(Box::new(e)),
+        }
+    }
+
     fn select_comments(&self, target_path: &String) -> Result<Vec<CommentPE>, Box<dyn Error>> {
         let pattern = format!("{}%", target_path);
 
