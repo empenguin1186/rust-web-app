@@ -32,13 +32,12 @@ impl CommentsRepositoryImpl {
 impl CommentsRepository for CommentsRepositoryImpl {
     fn get_path(&self, id: u64) -> Result<Option<String>, Box<dyn Error>> {
         let result = CommentsPE
-            .filter(comment_id.eq(id))
-            .limit(1)
+            .find(id)
             .select(path)
-            .load::<Option<String>>(&self.connection);
+            .first::<Option<String>>(&self.connection);
 
         return match result {
-            Ok(n) => Ok(n.get(0).unwrap().as_deref().to_string()),
+            Ok(n) => Ok(n),
             Err(e) => Err(Box::new(e)),
         }
     }
