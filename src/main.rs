@@ -116,46 +116,59 @@ async fn delete_post(state: web::Data<PostState>, param: Query<DeleteParam>) -> 
     }
 }
 
-fn main() {
-    let comments_repository = CommentsRepositoryImpl::new();
-    let path = String::from("1/");
-    let author = 5;
+// fn main() {
+    // let comments_repository = CommentsRepositoryImpl::new();
+    // let path = String::from("1/");
+    // let author = 5;
 
-    let result = comments_repository.add_comments(1, &author, "hogehogehoge");
-    match result {
-        _ => {}
-        Err(e) => println!("error: {}", e),
-    }
+    // comments_repository.add_comments(1, &author, "hogehogehoge");
+    // let path = comments_repository.get_path(1);
+    // match path {
+    //     Ok(n) => println!("path: {}", n.unwrap()),
+    //     Err(e) => println!("e: {}", e)
+    // }
 
-    let result = comments_repository.select_comments(&path);
-    match result {
-        Ok(n) => {
-            let tree = Tree::new(&n);
-            let json = serde_json::to_string(&tree).unwrap();
-            println!("result: {}", json);
-        }
-        Err(e) => {
-            println!("error: {}", e);
-        }
-    }
-}
 
-// #[actix_web::main]
-// async fn main() -> std::io::Result<()> {
-//     let repository = PostsRepositoryImpl::new();
-//     HttpServer::new(move || {
-//         let state = PostState::new(Box::new(PostsServiceImpl::new(&repository)));
-//         App::new()
-//             .service(get_posts)
-//             .service(post_post)
-//             .service(patch_post)
-//             .service(delete_post)
-//             .data(state)
-//     })
-//     .bind("127.0.0.1:8080")?
-//     .run()
-//     .await
+    // let result = comments_repository.add_comments(1, &author, "hogehogehoge");
+    // match result {
+    //     _ => {}
+    //     Err(e) => println!("error: {}", e),
+    // }
+    //
+    // let result = comments_repository.select_comments(&path);
+    // let tree = Tree::new(&result.unwrap());
+    // let json = serde_json::to_string(&tree).unwrap();
+    // println!("{}", json);
+
+    // match result {
+    //     Ok(n) => {
+    //         let tree = Tree::new(&n);
+    //         let json = serde_json::to_string(&tree).unwrap();
+    //         println!("{}", json);
+    //     }
+    //     Err(e) => {
+    //         println!("error: {}", e);
+    //     }
+    // }
 // }
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    let repository = PostsRepositoryImpl::new();
+    let state = PostState::new(Box::new(PostsServiceImpl::new(&repository)));
+
+    HttpServer::new(move || {
+        App::new()
+            .app_data(state.clone())
+            .service(get_posts)
+            .service(post_post)
+            .service(patch_post)
+            .service(delete_post)
+    })
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await
+}
 
 pub struct PostState {
     posts_service: Box<dyn PostsService>,
