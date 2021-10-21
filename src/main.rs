@@ -3,10 +3,14 @@ extern crate diesel;
 extern crate dotenv;
 extern crate serde_json;
 
+use std::env;
 use std::error::Error;
 
 use actix_web::{App, delete, get, HttpResponse, HttpServer, patch, post, Responder, web};
 use actix_web::web::Query;
+use diesel::MysqlConnection;
+use diesel::prelude::*;
+use diesel::r2d2::ConnectionManager;
 use serde::{Deserialize, Serialize};
 
 use infrastructure::repository::posts_repository_impl::PostsRepositoryImpl;
@@ -53,6 +57,25 @@ struct GetPostResponse {
 struct CUDResponse {
     result: Option<String>,
     error: Option<String>,
+}
+
+type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
+
+#[get("/comment/{comment_id}/child")]
+async fn index(web::Path((comment_id)): web::Path<(u64)>, pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
+    let conn = pool.get().expect("couldn't get db connection from pool");
+    let comments = web::block(move || {
+        let repository = CommentsRepositoryImpl::new(conn);
+        let path = repository.get_path(comment_id);
+        repository.select_comments(&path.unwrap().unwrap())
+    })
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            HttpResponse::InternalServerError().finish()
+        })?;
+    let tree = Tree::new(&comments);
+    Ok(HttpResponse::Ok().json(tree))
 }
 
 #[get("/post")]
@@ -154,18 +177,33 @@ async fn delete_post(state: web::Data<PostState>, param: Query<DeleteParam>) -> 
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let repository = PostsRepositoryImpl::new();
-    let state = PostState::new(Box::new(PostsServiceImpl::new(&repository)));
+
+    dotenv().ok();
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let manager = ConnectionManager::<MysqlConnection>::new(database_url);
+    let pool = r2d2::Pool::builder()
+        .build(manager)
+        .expect("Failed to create pool.");
+    let bind = "127.0.0.1:8080";
+
+    println!("Starting server at: {}", &bind);
+
+    // let connection = MysqlConnection::establish(&database_url)
+    //     .expect(&format!("Error connecting to {}", database_url));
+
+    // let repository = PostsRepositoryImpl::new();
+    // let state = PostState::new(Box::new(PostsServiceImpl::new(&repository)));
 
     HttpServer::new(move || {
         App::new()
-            .app_data(state.clone())
-            .service(get_posts)
-            .service(post_post)
-            .service(patch_post)
-            .service(delete_post)
+            .app_data(pool.clone())
+            .service(index)
+            // .service(get_posts)
+            // .service(post_post)
+            // .service(patch_post)
+            // .service(delete_post)
     })
-    .bind("127.0.0.1:8080")?
+    .bind(&bind)?
     .run()
     .await
 }

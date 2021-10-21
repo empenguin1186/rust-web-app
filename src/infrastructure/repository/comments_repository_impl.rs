@@ -13,18 +13,11 @@ use crate::models::{CommentPE, NewCommentsPE};
 use crate::schema::CommentsPE::dsl::{comment_id, CommentsPE, path};
 
 pub struct CommentsRepositoryImpl {
-    pub connection: MysqlConnection,
+    connection: MysqlConnection,
 }
 
 impl CommentsRepositoryImpl {
-    pub fn new() -> CommentsRepositoryImpl {
-        dotenv().ok();
-
-        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
-        let connection = MysqlConnection::establish(&database_url)
-            .expect(&format!("Error connecting to {}", database_url));
-
+    pub fn new(connection: MysqlConnection) -> CommentsRepositoryImpl {
         CommentsRepositoryImpl { connection }
     }
 }
