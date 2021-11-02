@@ -6,11 +6,11 @@ extern crate serde_json;
 use std::env;
 use std::error::Error;
 
-use actix_web::{App, delete, get, HttpResponse, HttpServer, patch, post, Responder, web};
 use actix_web::web::Query;
-use diesel::MysqlConnection;
+use actix_web::{delete, get, patch, post, web, App, HttpResponse, HttpServer, Responder};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
+use diesel::MysqlConnection;
 use serde::{Deserialize, Serialize};
 
 use infrastructure::repository::posts_repository_impl::PostsRepositoryImpl;
@@ -59,24 +59,24 @@ struct CUDResponse {
     error: Option<String>,
 }
 
-type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
+// type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 
-#[get("/comment/{comment_id}/child")]
-async fn index(web::Path((comment_id)): web::Path<(u64)>, pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
-    let conn = pool.get().expect("couldn't get db connection from pool");
-    let comments = web::block(move || {
-        let repository = CommentsRepositoryImpl::new(conn);
-        let path = repository.get_path(comment_id);
-        repository.select_comments(&path.unwrap().unwrap())
-    })
-        .await
-        .map_err(|e| {
-            eprintln!("{}", e);
-            HttpResponse::InternalServerError().finish()
-        })?;
-    let tree = Tree::new(&comments);
-    Ok(HttpResponse::Ok().json(tree))
-}
+// #[get("/comment/{comment_id}/child")]
+// async fn index(web::Path((comment_id)): web::Path<(u64)>, pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
+//     let conn = pool.get().expect("couldn't get db connection from pool");
+//     let comments = web::block(move || {
+//         let repository = CommentsRepositoryImpl::new(conn);
+//         let path = repository.get_path(comment_id);
+//         repository.select_comments(&path.unwrap().unwrap())
+//     })
+//         .await
+//         .map_err(|e| {
+//             eprintln!("{}", e);
+//             HttpResponse::InternalServerError().finish()
+//         })?;
+//     let tree = Tree::new(&comments);
+//     Ok(HttpResponse::Ok().json(tree))
+// }
 
 #[get("/post")]
 async fn get_posts(state: web::Data<PostState>, param: Query<PostParam>) -> impl Responder {
@@ -140,68 +140,62 @@ async fn delete_post(state: web::Data<PostState>, param: Query<DeleteParam>) -> 
 }
 
 // fn main() {
-    // let comments_repository = CommentsRepositoryImpl::new();
-    // let path = String::from("1/");
-    // let author = 5;
+// let comments_repository = CommentsRepositoryImpl::new();
+// let path = String::from("1/");
+// let author = 5;
 
-    // comments_repository.add_comments(1, &author, "hogehogehoge");
-    // let path = comments_repository.get_path(1);
-    // match path {
-    //     Ok(n) => println!("path: {}", n.unwrap()),
-    //     Err(e) => println!("e: {}", e)
-    // }
+// comments_repository.add_comments(1, &author, "hogehogehoge");
+// let path = comments_repository.get_path(1);
+// match path {
+//     Ok(n) => println!("path: {}", n.unwrap()),
+//     Err(e) => println!("e: {}", e)
+// }
 
+// let result = comments_repository.add_comments(1, &author, "hogehogehoge");
+// match result {
+//     _ => {}
+//     Err(e) => println!("error: {}", e),
+// }
+//
+// let result = comments_repository.select_comments(&path);
+// let tree = Tree::new(&result.unwrap());
+// let json = serde_json::to_string(&tree).unwrap();
+// println!("{}", json);
 
-    // let result = comments_repository.add_comments(1, &author, "hogehogehoge");
-    // match result {
-    //     _ => {}
-    //     Err(e) => println!("error: {}", e),
-    // }
-    //
-    // let result = comments_repository.select_comments(&path);
-    // let tree = Tree::new(&result.unwrap());
-    // let json = serde_json::to_string(&tree).unwrap();
-    // println!("{}", json);
-
-    // match result {
-    //     Ok(n) => {
-    //         let tree = Tree::new(&n);
-    //         let json = serde_json::to_string(&tree).unwrap();
-    //         println!("{}", json);
-    //     }
-    //     Err(e) => {
-    //         println!("error: {}", e);
-    //     }
-    // }
+// match result {
+//     Ok(n) => {
+//         let tree = Tree::new(&n);
+//         let json = serde_json::to_string(&tree).unwrap();
+//         println!("{}", json);
+//     }
+//     Err(e) => {
+//         println!("error: {}", e);
+//     }
+// }
 // }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // let manager = ConnectionManager::<MysqlConnection>::new(database_url);
+    // let pool = r2d2::Pool::builder()
+    //     .build(manager)
+    //     .expect("Failed to create pool.");
 
+    // println!("Starting server at: {}", &bind);
+
+    let bind = "127.0.0.1:8080";
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let manager = ConnectionManager::<MysqlConnection>::new(database_url);
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
-    let bind = "127.0.0.1:8080";
-
-    println!("Starting server at: {}", &bind);
-
-    // let connection = MysqlConnection::establish(&database_url)
-    //     .expect(&format!("Error connecting to {}", database_url));
-
-    // let repository = PostsRepositoryImpl::new();
-    // let state = PostState::new(Box::new(PostsServiceImpl::new(&repository)));
+    let connection = MysqlConnection::establish(&database_url)
+        .expect(&format!("Error connecting to {}", database_url));
+    let repository = CommentsRepositoryImpl::new(connection);
 
     HttpServer::new(move || {
-        App::new()
-            .app_data(pool.clone())
-            .service(index)
-            // .service(get_posts)
-            // .service(post_post)
-            // .service(patch_post)
-            // .service(delete_post)
+        App::new().app_data(pool.clone()).service(index)
+        // .service(get_posts)
+        // .service(post_post)
+        // .service(patch_post)
+        // .service(delete_post)
     })
     .bind(&bind)?
     .run()

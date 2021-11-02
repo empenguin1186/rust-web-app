@@ -1,16 +1,14 @@
-use std::env;
 use std::error::Error;
 
-use diesel::MysqlConnection;
 use diesel::prelude::*;
 use diesel::result::Error as DieselError;
 use diesel::sql_query;
 use diesel::sql_types::{BigInt, Unsigned};
-use dotenv::dotenv;
+use diesel::MysqlConnection;
 
 use crate::domain::repository::comments_repository::CommentsRepository;
 use crate::models::{CommentPE, NewCommentsPE};
-use crate::schema::CommentsPE::dsl::{comment_id, CommentsPE, path};
+use crate::schema::CommentsPE::dsl::{path, CommentsPE};
 
 pub struct CommentsRepositoryImpl {
     connection: MysqlConnection,
@@ -32,7 +30,7 @@ impl CommentsRepository for CommentsRepositoryImpl {
         return match result {
             Ok(n) => Ok(n),
             Err(e) => Err(Box::new(e)),
-        }
+        };
     }
 
     fn select_comments(&self, target_path: &String) -> Result<Vec<CommentPE>, Box<dyn Error>> {
@@ -46,7 +44,7 @@ impl CommentsRepository for CommentsRepositoryImpl {
         return match result {
             Ok(n) => Ok(n),
             Err(e) => Err(Box::new(e)),
-        }
+        };
     }
 
     fn add_comments(&self, id: u64, author: &u64, comment: &str) -> Result<(), Box<dyn Error>> {
@@ -76,12 +74,12 @@ impl CommentsRepository for CommentsRepositoryImpl {
             return match update_result {
                 Ok(_) => Ok(()),
                 Err(_) => Err(DieselError::RollbackTransaction),
-            }
+            };
         });
 
         return match transaction_result {
             Ok(_) => Ok(()),
             Err(e) => Err(Box::new(e)),
-        }
+        };
     }
 }
