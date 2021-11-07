@@ -9,13 +9,14 @@ use diesel::MysqlConnection;
 use crate::domain::repository::comments_repository::CommentsRepository;
 use crate::models::{CommentPE, NewCommentsPE};
 use crate::schema::CommentsPE::dsl::{path, CommentsPE};
+use diesel::r2d2::{PooledConnection, ConnectionManager};
 
 pub struct CommentsRepositoryImpl {
-    connection: MysqlConnection,
+    connection: PooledConnection<ConnectionManager<MysqlConnection>>,
 }
 
 impl CommentsRepositoryImpl {
-    pub fn new(connection: MysqlConnection) -> CommentsRepositoryImpl {
+    pub fn new(connection: PooledConnection<ConnectionManager<MysqlConnection>>) -> CommentsRepositoryImpl {
         CommentsRepositoryImpl { connection }
     }
 }
