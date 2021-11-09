@@ -56,18 +56,32 @@ impl Server {
     }
 }
 
-#[get("/comments")]
-async fn get_comments(server: web::Data<Server>) -> String {
+#[derive(Deserialize)]
+struct TreeInfo {
+    tree_id: u64,
+}
+
+#[get("/children/{tree_id}")]
+async fn get_comments(server: web::Data<Server>, info: web::Path<TreeInfo>) -> String {
     let result = server.pool.get();
     match result {
         Ok(n) => {
             let repository = CommentsRepositoryImpl::new(n);
-            let path = String::from("1/");
-            let select_result = repository.select_comments(&path);
-            match select_result {
+            let path_result = repository.get_path(info.tree_id);
+            match path_result {
                 Ok(n) => {
-                    let tree = Tree::new(&n);
-                    serde_json::to_string(&tree).unwrap()
+                    if let Some(p) = n {
+                        let select_result = repository.select_comments(&p);
+                        match select_result {
+                            Ok(n) => {
+                                let tree = Tree::new(&n);
+                                serde_json::to_string(&tree).unwrap()
+                            },
+                            Err(e) => format!("Error Occurred. {}", e),
+                        }
+                    } else {
+                        String::from("path parameter is null")
+                    }
                 },
                 Err(e) => format!("Error Occurred. {}", e),
             }
