@@ -10,10 +10,12 @@ use std::ops::Deref;
 
 use actix_web::{App, delete, get, HttpResponse, HttpServer, patch, post, Responder, web};
 use actix_web::error::ParseError::Method;
+use actix_web::middleware::Logger;
 use actix_web::web::Query;
 use diesel::MysqlConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
+use env_logger::Env;
 use serde::{Deserialize, Serialize};
 use serde_json::ser::State;
 
@@ -77,8 +79,10 @@ async fn get_comments(server: web::Data<Server>) -> String {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let bind = "127.0.0.1:8080";
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     HttpServer::new(|| {
         App::new()
+            .wrap(Logger::new("date=%t\tip=%a\tstatus_code=%s\tduration=%D"))
             .data(Server::new())
             .service(get_comments)
     })
