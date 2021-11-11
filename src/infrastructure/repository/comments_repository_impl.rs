@@ -34,7 +34,7 @@ impl CommentsRepository for CommentsRepositoryImpl {
         };
     }
 
-    fn select_comments(&self, target_path: &String) -> Result<Vec<CommentPE>, Box<dyn Error>> {
+    fn select_comments(&self, target_path: &str) -> Result<Vec<CommentPE>, Box<dyn Error>> {
         let pattern = format!("{}%", target_path);
 
         let result = CommentsPE
