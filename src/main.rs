@@ -3,30 +3,18 @@ extern crate diesel;
 extern crate dotenv;
 extern crate serde_json;
 
-use std::borrow::Borrow;
 use std::env;
-use std::error::Error;
-use std::ops::Deref;
 
-use actix_web::{App, delete, get, HttpResponse, HttpServer, patch, post, Responder, web};
-use actix_web::error::ParseError::Method;
+use actix_web::{App, get, HttpServer, web};
 use actix_web::middleware::Logger;
-use actix_web::web::Query;
 use diesel::MysqlConnection;
-use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use env_logger::Env;
 use serde::{Deserialize, Serialize};
-use serde_json::ser::State;
-
-use infrastructure::repository::posts_repository_impl::PostsRepositoryImpl;
-use rust_web_app::schema::CommentsPE::dsl::CommentsPE;
 
 use crate::domain::model::tree::Tree;
 use crate::domain::repository::comments_repository::CommentsRepository;
-use crate::domain::service::posts_service::{PostsService, PostsServiceImpl};
 use crate::infrastructure::repository::comments_repository_impl::CommentsRepositoryImpl;
-use crate::models::Post;
 
 mod domain;
 mod infrastructure;
