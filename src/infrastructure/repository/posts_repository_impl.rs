@@ -1,7 +1,7 @@
 use std::env;
 use std::error::Error;
 
-use diesel::MysqlConnection;
+use diesel::{MysqlConnection, sql_query};
 use diesel::prelude::*;
 use dotenv::dotenv;
 
@@ -33,6 +33,11 @@ impl PostsRepository for PostsRepositoryImpl {
             .filter(published.eq(is_published))
             .limit(5)
             .load::<Post>(&self.connection);
+
+        let hoge = sql_query(
+            "SELECT * FROM posts WHERE MATCH(summary, description) AGAINST (?);",
+        ).bind::<String, _>("hoge")
+            .execute(&self.connection);
 
         return match result {
             Ok(n) => Ok(n),

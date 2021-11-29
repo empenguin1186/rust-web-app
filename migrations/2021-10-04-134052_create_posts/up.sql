@@ -4,6 +4,13 @@ CREATE TABLE Comments (
  comment TEXT NOT NULL
 );
 
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(100) NOT NULL,
+  body TEXT NOT NULL
+)
+ALTER TABLE posts ADD FULLTEXT INDEX postsfts (body);
+
 CREATE TABLE TreePaths (
  ancestor BIGINT UNSIGNED NOT NULL,
  descendant BIGINT UNSIGNED NOT NULL,
